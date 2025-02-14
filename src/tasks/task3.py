@@ -44,7 +44,7 @@ def relaxation_method(omega, a, b, c, tol=1e-10, max_iter=1000):
     y = 0.0
     z = 0.0
 
-    # Lists to store iteration history for plotting
+    # Lists to store iteration history for plotting and table
     iterations_list = []
     x_history = []
     y_history = []
@@ -64,7 +64,7 @@ def relaxation_method(omega, a, b, c, tol=1e-10, max_iter=1000):
         # Update y: y = c - z (using the new z)
         y = (1 - omega) * y_old + omega * (c - z)
 
-        # Store values for plotting
+        # Store values for plotting and table
         iterations_list.append(iter)
         x_history.append(x)
         y_history.append(y)
@@ -76,14 +76,29 @@ def relaxation_method(omega, a, b, c, tol=1e-10, max_iter=1000):
 
     return iter + 1, x, y, z, iterations_list, x_history, y_history, z_history
 
+def print_iteration_table(iterations_list, x_history, y_history, z_history):
+    """
+    Step 3.1: Prints the iteration table.
+
+    Prints a formatted table showing the values of x, y, and z at each iteration.
+    """
+    print("\nIteration Table:")
+    print("-" * 40)
+    print("{:<10} | {:<10} | {:<10} | {:<10}".format("Iteration", "x", "y", "z"))
+    print("-" * 40)
+    for i in range(len(iterations_list)):
+        print("{:<10} | {:<10.6f} | {:<10.6f} | {:<10.6f}".format(
+            iterations_list[i], x_history[i], y_history[i], z_history[i]))
+    print("-" * 40)
+
 def print_results(iterations, x, y, z, a, b, c):
     """
     Step 4: Outputs the results.
 
-    Prints the number of iterations, the approximate solution from the relaxation method,
+    Prints the approximate solution from the relaxation method,
     and the analytical solution.
     """
-    print("\nNumber of iterations:", iterations)
+    print("\nNumber of iterations:", iterations) # Keep iteration count in results
     print("Approximate solution using the relaxation method:")
     print(f"x = {x:.12f}")
     print(f"y = {y:.12f}")
@@ -136,6 +151,9 @@ def main():
     tol = 1e-10         # Tolerance for convergence
     max_iter = 1000     # Maximum number of iterations
     iterations, x, y, z, iterations_list, x_history, y_history, z_history = relaxation_method(omega, a, b, c, tol, max_iter)
+
+    # Step 3.1: Print the iteration table
+    print_iteration_table(iterations_list, x_history, y_history, z_history)
 
     # Step 4: Print the results
     print_results(iterations, x, y, z, a, b, c)
