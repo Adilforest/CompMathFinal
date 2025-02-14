@@ -1,73 +1,81 @@
-import sympy as sp
+from decimal import Decimal
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Определяем символьные переменные
-x, t = sp.symbols('x t')
+# ===============================
+# Шаг 1. Ввод значения x от пользователя
+# ===============================
+x_input = Decimal(input("Введите значение x для вычисления y (например, 0.2): "))
+x_val = float(x_input)
 
 # ===============================
-# Шаг 1. Определяем начальное приближение
+# Шаг 2. Определение функций-приближений (Метод Пикара)
 # ===============================
-# Начальное приближение y0(x) = 1 (константа, т.к. y(0)=1)
-y0 = sp.sympify(1)
+def y0(x):
+    # Начальное приближение: постоянная функция y0(x)=1
+    return 1.0
 
-# Сохраняем аппроксимации в список
-picard_approximations = [y0]
+def y1(x):
+    # Первое приближение: y1(x)=1 + x + x^2/2
+    return 1.0 + x + x**2 / 2
 
-# ===============================
-# Шаг 2. Вычисляем последовательно аппроксимации по схеме Пикара
-# ===============================
-# Метод Пикара: y_{n+1}(x) = 1 + ∫[0,x] (t + y_n(t)) dt
-for i in range(1, 5):
-    # Получаем предыдущую аппроксимацию y_{n}(t)
-    y_prev = picard_approximations[i - 1]
-    # Интегрируем функцию: t + y_prev(t)
-    integrand = t + y_prev.subs(x, t)
-    y_new = 1 + sp.integrate(integrand, (t, 0, x))
-    y_new = sp.simplify(y_new)
-    picard_approximations.append(y_new)
+def y2(x):
+    # Второе приближение: y2(x)=1 + x + x^2 + x^3/6
+    return 1.0 + x + x**2 + x**3 / 6
 
-# ===============================
-# Шаг 3. Вывод аналитических выражений аппроксимаций
-# ===============================
-print("Аппроксимации методом Пикара:")
-for i, yi in enumerate(picard_approximations):
-    print(f"y_{i}(x) =")
-    sp.pprint(yi)
-    print("\n")
+def y3(x):
+    # Третье приближение: y3(x)=1 + x + x^2 + x^3/3 + x^4/24
+    return 1.0 + x + x**2 + x**3 / 3 + x**4 / 24
+
+def y4(x):
+    # Четвёртое приближение: y4(x)=1 + x + x^2 + x^3/3 + x^4/12 + x^5/120
+    return 1.0 + x + x**2 + x**3 / 3 + x**4 / 12 + x**5 / 120
 
 # ===============================
-# Шаг 4. Вычисление значений аппроксимаций при x = 0.2 и вывод таблицы
+# Шаг 3. Вычисление приближённых значений в точке x_val
 # ===============================
-x_val = 0.2
-print("Таблица значений y(x) при x = 0.2:")
-print("{:<12} {:<30}".format("Итерация", "y(x)"))
-for i, yi in enumerate(picard_approximations):
-    yi_val = yi.subs(x, x_val).evalf()
-    print("{:<12} {:<30.6f}".format(i, yi_val))
-
-# Для четвертой аппроксимации:
-y4_val = picard_approximations[4].subs(x, x_val).evalf()
-print(f"\nЧетвертая аппроксимация: y_4({x_val}) = {y4_val:.6f}")
+y0_val = y0(x_val)
+y1_val = y1(x_val)
+y2_val = y2(x_val)
+y3_val = y3(x_val)
+y4_val = y4(x_val)
 
 # ===============================
-# Шаг 5. Построение графика аппроксимаций
+# Шаг 4. Вывод таблицы с приближениями
 # ===============================
-# Генерируем набор значений x в интервале [0, 0.3]
-x_vals = np.linspace(0, 0.3, 200)
+print("\nТаблица приближённых значений по методу Пикара:")
+print("{:<10} {:<20}".format("Итерация", "y(x)"))
+print("{:<10} {:<20.12f}".format("y0", y0_val))
+print("{:<10} {:<20.12f}".format("y1", y1_val))
+print("{:<10} {:<20.12f}".format("y2", y2_val))
+print("{:<10} {:<20.12f}".format("y3", y3_val))
+print("{:<10} {:<20.12f}".format("y4", y4_val))
+
+print("\nЗначение y в x = {:.4f} по 4-й аппроксимации: {:.12f}".format(x_val, y4_val))
+
+# ===============================
+# Шаг 5. Построение графиков приближений
+# ===============================
+# Построим графики y0, y1, y2, y3, y4 на интервале [0, 0.5]
+x_plot = np.linspace(0, 0.5, 200)
+y0_plot = np.array([y0(x) for x in x_plot])
+y1_plot = np.array([y1(x) for x in x_plot])
+y2_plot = np.array([y2(x) for x in x_plot])
+y3_plot = np.array([y3(x) for x in x_plot])
+y4_plot = np.array([y4(x) for x in x_plot])
+
 plt.figure(figsize=(10, 6))
-for i, yi in enumerate(picard_approximations):
-    # Преобразуем символьное выражение в функцию для numpy
-    f_yi = sp.lambdify(x, yi, 'numpy')
-    y_vals = f_yi(x_vals)
-    # Если результат скаляр, создаём массив той же формы, заполненный этим значением
-    if np.ndim(y_vals) == 0:
-        y_vals = np.full_like(x_vals, y_vals)
-    plt.plot(x_vals, y_vals, label=f'$y_{i}(x)$')
+plt.plot(x_plot, y0_plot, label="y0(x)=1", linestyle="--")
+plt.plot(x_plot, y1_plot, label="y1(x)=1+x+x²/2", linestyle="-")
+plt.plot(x_plot, y2_plot, label="y2(x)=1+x+x²+x³/6", linestyle="-.")
+plt.plot(x_plot, y3_plot, label="y3(x)=1+x+x²+x³/3+x⁴/24", linestyle=":")
+plt.plot(x_plot, y4_plot, label="y4(x)=1+x+x²+x³/3+x⁴/12+x⁵/120", linewidth=2)
 
-plt.xlabel('x')
-plt.ylabel('y(x)')
-plt.title("Аппроксимации методом Пикара для $\dfrac{dy}{dx}=x+y$, $y(0)=1$")
+# Отмечаем значение в точке x_val для каждого приближения
+plt.scatter([x_val]*5, [y0_val, y1_val, y2_val, y3_val, y4_val], color="red", zorder=5)
+plt.xlabel("x")
+plt.ylabel("y(x)")
+plt.title("Метод Пикара: последовательные приближения решения дифференциального уравнения")
 plt.legend()
 plt.grid(True)
 plt.show()
