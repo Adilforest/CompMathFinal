@@ -1,100 +1,147 @@
 from decimal import Decimal
 import matplotlib.pyplot as plt
 
-# ===============================
-# Шаг 1. Ввод параметров
-# ===============================
-# Вводим релаксационный параметр ω и коэффициенты a, b, c
-omega = Decimal(input("Введите значение релаксационного параметра ω: "))
-a = Decimal(input("Введите значение a: "))
-b = Decimal(input("Введите значение b: "))
-c = Decimal(input("Введите значение c: "))
+def get_parameters():
+    """
+    Step 1: Input parameters.
 
-# Преобразуем Decimal в float для удобства вычислений
-omega_val = float(omega)
-a_val = float(a)
-b_val = float(b)
-c_val = float(c)
+    Prompts the user to enter the relaxation parameter ω and the coefficients a, b, c.
+    Returns the corresponding float values.
+    """
+    omega = Decimal(input("Enter the relaxation parameter ω: "))
+    a = Decimal(input("Enter the value of a: "))
+    b = Decimal(input("Enter the value of b: "))
+    c = Decimal(input("Enter the value of c: "))
 
-# ===============================
-# Шаг 2. Задаём параметры итерационного процесса
-# ===============================
-tol = 1e-10         # Допуск по изменениям
-max_iter = 1000     # Максимальное число итераций
+    # Convert Decimal to float for computation
+    return float(omega), float(a), float(b), float(c)
 
-# Начальные приближения (можно задать произвольные значения)
-x = 0.0
-y = 0.0
-z = 0.0
+def relaxation_method(omega, a, b, c, tol=1e-10, max_iter=1000):
+    """
+    Step 2 & 3: Performs the relaxation method for solving the system.
 
-# Для хранения истории итераций для построения графика
-iterations_list = []
-x_history = []
-y_history = []
-z_history = []
+    The "exact" relations are:
+        z = b + c - a
+        x = b - z
+        y = c - z
 
-# ===============================
-# Шаг 3. Итерационный процесс по методу релаксации
-# ===============================
-for iter in range(max_iter):
-    # Сохраняем предыдущие значения для проверки сходимости
-    x_old, y_old, z_old = x, y, z
+    Parameters:
+        omega   : relaxation parameter
+        a, b, c : coefficients
+        tol     : tolerance for convergence (max change)
+        max_iter: maximum number of iterations
 
-    # Обновление z по релаксационному правилу:
-    # "точное" соотношение: z = b + c - a
-    z = (1 - omega_val) * z_old + omega_val * (b_val + c_val - a_val)
+    Returns:
+        iterations      : number of iterations performed
+        x, y, z         : approximate solution
+        iterations_list : list of iteration numbers (for plotting)
+        x_history       : history of x values
+        y_history       : history of y values
+        z_history       : history of z values
+    """
+    # Initial approximations (can be arbitrary)
+    x = 0.0
+    y = 0.0
+    z = 0.0
 
-    # Обновление x по уравнению: x = b - z (используем новое z)
-    x = (1 - omega_val) * x_old + omega_val * (b_val - z)
+    # Lists to store iteration history for plotting
+    iterations_list = []
+    x_history = []
+    y_history = []
+    z_history = []
 
-    # Обновление y по уравнению: y = c - z (используем новое z)
-    y = (1 - omega_val) * y_old + omega_val * (c_val - z)
+    for iter in range(max_iter):
+        # Save previous values to check for convergence
+        x_old, y_old, z_old = x, y, z
 
-    # Сохраняем значения для графика
-    iterations_list.append(iter)
-    x_history.append(x)
-    y_history.append(y)
-    z_history.append(z)
+        # Update z using the relaxation rule:
+        # "Exact" relation: z = b + c - a
+        z = (1 - omega) * z_old + omega * (b + c - a)
 
-    # Проверяем условие сходимости: если максимальное изменение меньше tol, останавливаемся
-    if max(abs(x - x_old), abs(y - y_old), abs(z - z_old)) < tol:
-        break
+        # Update x: x = b - z (using the new z)
+        x = (1 - omega) * x_old + omega * (b - z)
 
-# ===============================
-# Шаг 4. Вывод результатов
-# ===============================
-print("\nКоличество итераций:", iter + 1)
-print("Приближённое решение системы методом релаксации:")
-print(f"x = {x:.12f}")
-print(f"y = {y:.12f}")
-print(f"z = {z:.12f}")
+        # Update y: y = c - z (using the new z)
+        y = (1 - omega) * y_old + omega * (c - z)
 
-# Для сравнения выводим аналитическое решение:
-exact_x = a_val - c_val
-exact_y = a_val - b_val
-exact_z = b_val + c_val - a_val
+        # Store values for plotting
+        iterations_list.append(iter)
+        x_history.append(x)
+        y_history.append(y)
+        z_history.append(z)
 
-print("\nАналитическое решение:")
-print(f"x = {exact_x:.12f}")
-print(f"y = {exact_y:.12f}")
-print(f"z = {exact_z:.12f}")
+        # Check for convergence: stop if the maximum change is below tol
+        if max(abs(x - x_old), abs(y - y_old), abs(z - z_old)) < tol:
+            break
 
-# ===============================
-# Шаг 5. Построение графика сходимости
-# ===============================
-plt.figure(figsize=(10, 6))
-plt.plot(iterations_list, x_history, label='x', marker='o', markersize=4)
-plt.plot(iterations_list, y_history, label='y', marker='s', markersize=4)
-plt.plot(iterations_list, z_history, label='z', marker='^', markersize=4)
+    return iter + 1, x, y, z, iterations_list, x_history, y_history, z_history
 
-# Добавляем горизонтальные линии с аналитическими решениями для сравнения
-plt.axhline(exact_x, color='blue', linestyle='--', linewidth=1)
-plt.axhline(exact_y, color='orange', linestyle='--', linewidth=1)
-plt.axhline(exact_z, color='green', linestyle='--', linewidth=1)
+def print_results(iterations, x, y, z, a, b, c):
+    """
+    Step 4: Outputs the results.
 
-plt.xlabel('Итерация')
-plt.ylabel('Значение переменной')
-plt.title('Сходимость переменных методом релаксации')
-plt.legend()
-plt.grid(True)
-plt.show()
+    Prints the number of iterations, the approximate solution from the relaxation method,
+    and the analytical solution.
+    """
+    print("\nNumber of iterations:", iterations)
+    print("Approximate solution using the relaxation method:")
+    print(f"x = {x:.12f}")
+    print(f"y = {y:.12f}")
+    print(f"z = {z:.12f}")
+
+    # Analytical solution
+    exact_x = a - c
+    exact_y = a - b
+    exact_z = b + c - a
+
+    print("\nAnalytical solution:")
+    print(f"x = {exact_x:.12f}")
+    print(f"y = {exact_y:.12f}")
+    print(f"z = {exact_z:.12f}")
+
+def plot_convergence(iterations_list, x_history, y_history, z_history, a, b, c):
+    """
+    Step 5: Plots the convergence of the variables.
+
+    Plots the iteration history of x, y, and z values, and adds horizontal lines for the
+    analytical solutions for comparison.
+    """
+    # Analytical solution
+    exact_x = a - c
+    exact_y = a - b
+    exact_z = b + c - a
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(iterations_list, x_history, label='x', marker='o', markersize=4)
+    plt.plot(iterations_list, y_history, label='y', marker='s', markersize=4)
+    plt.plot(iterations_list, z_history, label='z', marker='^', markersize=4)
+
+    # Add horizontal lines for the analytical solutions
+    plt.axhline(exact_x, color='blue', linestyle='--', linewidth=1)
+    plt.axhline(exact_y, color='orange', linestyle='--', linewidth=1)
+    plt.axhline(exact_z, color='green', linestyle='--', linewidth=1)
+
+    plt.xlabel('Iteration')
+    plt.ylabel('Variable Value')
+    plt.title('Convergence of Variables Using the Relaxation Method')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+def main():
+    # Step 1: Get parameters from the user
+    omega, a, b, c = get_parameters()
+
+    # Step 2 & 3: Execute the relaxation method
+    tol = 1e-10         # Tolerance for convergence
+    max_iter = 1000     # Maximum number of iterations
+    iterations, x, y, z, iterations_list, x_history, y_history, z_history = relaxation_method(omega, a, b, c, tol, max_iter)
+
+    # Step 4: Print the results
+    print_results(iterations, x, y, z, a, b, c)
+
+    # Step 5: Plot the convergence graph
+    plot_convergence(iterations_list, x_history, y_history, z_history, a, b, c)
+
+if __name__ == "__main__":
+    main()
