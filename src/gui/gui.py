@@ -24,8 +24,9 @@ from matplotlib.figure import Figure
 
 from tasks.task1 import solve_task as solve_task_1
 from tasks.task2 import solve_task as solve_task_2
-from tasks.task5 import solve_task as solve_task_5
+from tasks.task3 import solve_task as solve_task_3
 from tasks.task4 import solve_task as solve_task_4
+from tasks.task5 import solve_task as solve_task_5
 from tasks.task6 import solve_task as solve_task_6
 from tasks.task7 import solve_task as solve_task_7
 from tasks.task8 import solve_task as solve_task_8
@@ -87,6 +88,11 @@ class MainWindow(QMainWindow):
                 input_widget = Task2InputWidget()
                 # Связываем сигнал solveRequested с обработчиком задачи 2
                 input_widget.solveRequested.connect(self.solve_task2)
+            elif task_number == 3:
+                # Для третьей задачи используем еще один кастомный виджет ввода
+                input_widget = Task3InputWidget()
+                # Связываем сигнал solveRequested с обработчиком задачи 3
+                input_widget.solveRequested.connect(self.solve_task_3)
             elif task_number == 4:
                 # Для четвертой задачи используем еще один кастомный виджет ввода
                 input_widget = Task4InputWidget()
@@ -226,6 +232,31 @@ class MainWindow(QMainWindow):
 
         canvas = self.plot_stack.widget(1)
         results = solve_task_2(n1, n2, a, b, c, d, tol, axes=canvas.axes)
+
+    def solve_task_3(self, omega_text, a_text, b_text, c_text):
+        console = self.console_stack.widget(2)
+        try:
+            omega = float(omega_text)
+            a = float(a_text)
+            b = float(b_text)
+            c = float(c_text)
+        except ValueError:
+            console.append(
+                "Error: invalid input. Please enter valid numbers for omega, a, b, c."
+            )
+            return
+
+        equation_str = f"z = b + c - a, x = b - z, y = c - z"
+        console.append(f"Solving equation: {equation_str}")
+
+        canvas = self.plot_stack.widget(2)
+        results = solve_task_3(omega, a, b, c, axes=canvas.axes)
+
+        console.append(f"Number of iterations: {results['iterations']}")
+        console.append("Approximate solution using the relaxation method:")
+        console.append(f"x = {results['x']}, y = {results['y']}, z = {results['z']}")
+
+        canvas.draw()
 
     def solve_task4(self, matrix):
         console = self.console_stack.widget(3)
@@ -448,6 +479,51 @@ class Task2InputWidget(QWidget):
         self.solveRequested.emit(
             n1_text, n2_text, a_text, b_text, c_text, d_text, tol_text
         )
+
+
+class Task3InputWidget(QWidget):
+    solveRequested = Signal(str, str, str, str)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        layout = QVBoxLayout(self)
+        self.label_info = QLabel(
+            """Relaxation method for solving the system of equations
+The "exact" relations are:
+z = b + c - a
+x = b - z
+y = c - z
+            """
+        )
+        layout.addWidget(self.label_info)
+
+        self.input_omega = QLineEdit()
+        self.input_omega.setPlaceholderText("Enter the relaxation parameter ω")
+        layout.addWidget(self.input_omega)
+
+        self.input_a = QLineEdit()
+        self.input_a.setPlaceholderText("Enter the value of a")
+        layout.addWidget(self.input_a)
+
+        self.input_b = QLineEdit()
+        self.input_b.setPlaceholderText("Enter the value of b")
+        layout.addWidget(self.input_b)
+
+        self.input_c = QLineEdit()
+        self.input_c.setPlaceholderText("Enter the value of c")
+        layout.addWidget(self.input_c)
+
+        self.solve_button = QPushButton("Solve")
+        layout.addWidget(self.solve_button)
+
+        self.solve_button.clicked.connect(self.on_solve_clicked)
+
+    def on_solve_clicked(self):
+        omega_text = self.input_omega.text().strip()
+        a_text = self.input_a.text().strip()
+        b_text = self.input_b.text().strip()
+        c_text = self.input_c.text().strip()
+        self.solveRequested.emit(omega_text, a_text, b_text, c_text)
 
 
 class Task4InputWidget(QWidget):
