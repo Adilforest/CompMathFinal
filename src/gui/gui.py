@@ -14,6 +14,8 @@ from PySide6.QtWidgets import (
     QStackedWidget,
     QLabel,
     QLineEdit,
+    QTableWidget,
+    QTableWidgetItem,
 )
 from PySide6.QtCore import Qt, Signal
 
@@ -23,6 +25,7 @@ from matplotlib.figure import Figure
 from tasks.task1 import solve_task as solve_task_1
 from tasks.task2 import solve_task as solve_task_2
 from tasks.task5 import solve_task as solve_task_5
+from tasks.task4 import solve_task as solve_task_4
 from tasks.task6 import solve_task as solve_task_6
 from tasks.task7 import solve_task as solve_task_7
 from tasks.task8 import solve_task as solve_task_8
@@ -84,6 +87,11 @@ class MainWindow(QMainWindow):
                 input_widget = Task2InputWidget()
                 # Связываем сигнал solveRequested с обработчиком задачи 2
                 input_widget.solveRequested.connect(self.solve_task2)
+            elif task_number == 4:
+                # Для четвертой задачи используем еще один кастомный виджет ввода
+                input_widget = Task4InputWidget()
+                # Связываем сигнал solveRequested с обработчиком задачи 4
+                input_widget.solveRequested.connect(self.solve_task4)
             elif task_number == 5:
                 # Для пятой задачи используем еще один кастомный виджет ввода
                 input_widget = Task5InputWidget()
@@ -218,6 +226,29 @@ class MainWindow(QMainWindow):
 
         canvas = self.plot_stack.widget(1)
         results = solve_task_2(n1, n2, a, b, c, d, tol, axes=canvas.axes)
+
+    def solve_task4(self, matrix):
+        console = self.console_stack.widget(3)
+        try:
+            matrix = np.array(matrix, dtype=float)
+        except ValueError:
+            console.append("Error: invalid matrix input.")
+            return
+
+        console.append("Solving power method task")
+        console.append("Matrix A:")
+        console.append(str(matrix))
+
+        canvas = self.plot_stack.widget(3)
+        results = solve_task_4(matrix, axes=canvas.axes)
+
+        console.append(f"Approximate largest eigenvalue: {results['lambda_approx']}")
+        console.append(f"Corresponding eigenvector (normalized):")
+        console.append(str(results["eigenvector"]))
+        console.append(f"Number of iterations: {len(results['iter_numbers'])}")
+        console.append("-" * 40)
+
+        canvas.draw()
 
     def solve_task_5(self, x_input, y_input):
         console = self.console_stack.widget(4)
@@ -417,6 +448,68 @@ class Task2InputWidget(QWidget):
         self.solveRequested.emit(
             n1_text, n2_text, a_text, b_text, c_text, d_text, tol_text
         )
+
+
+class Task4InputWidget(QWidget):
+    solveRequested = Signal(np.ndarray)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        layout = QVBoxLayout(self)
+        self.label_info = QLabel(
+            """Power method for finding the largest eigenvalue of a matrix A
+            
+            """
+        )
+        layout.addWidget(self.label_info)
+
+        self.input_size = QLineEdit(text="3")
+        self.input_size.setPlaceholderText("Enter the size of the square matrix")
+        layout.addWidget(self.input_size)
+
+        self.input_matrix = QTableWidget()
+        self.input_matrix.setColumnCount(3)
+        self.input_matrix.setRowCount(3)
+        matrix = [
+            [6, 2, 3],
+            [2, 6, 4],
+            [3, 4, 6],
+        ]
+        for i in range(3):
+            for j in range(3):
+                self.input_matrix.setItem(i, j, QTableWidgetItem(str(matrix[i][j])))
+        self.input_matrix.resizeColumnsToContents()
+        layout.addWidget(self.input_matrix)
+
+        self.solve_button = QPushButton("Solve")
+        layout.addWidget(self.solve_button)
+
+        self.solve_button.clicked.connect(self.on_solve_clicked)
+        self.input_size.textChanged.connect(self.on_size_changed)
+
+    def on_solve_clicked(self):
+        size = self.input_matrix.rowCount()
+        matrix = np.zeros((size, size))
+        for i in range(size):
+            for j in range(size):
+                item = self.input_matrix.item(i, j)
+                if item is None:
+                    return
+                try:
+                    matrix[i, j] = float(item.text())
+                except ValueError:
+                    return
+        self.solveRequested.emit(matrix)
+
+    def on_size_changed(self):
+        try:
+            size = int(self.input_size.text())
+            self.input_matrix.setColumnCount(size)
+            self.input_matrix.setRowCount(size)
+            self.input_matrix.setVerticalHeaderLabels([f"{i}" for i in range(size)])
+            self.input_matrix.resizeColumnsToContents()
+        except ValueError:
+            pass
 
 
 class Task5InputWidget(QWidget):

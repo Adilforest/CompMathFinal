@@ -1,7 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def power_method(A, tol=1e-10, max_iter=1000):
+
+def solve_task(matrix: np.ndarray, tol: float = 1e-10, max_iter: int = 1000, axes=None):
     """
     Implements the power method to find the eigenvalue of matrix A
     with the largest magnitude.
@@ -17,21 +18,31 @@ def power_method(A, tol=1e-10, max_iter=1000):
       - eigenvalue_history: list of eigenvalue approximations per iteration
       - iter_numbers: list of iteration numbers (for plotting)
     """
-    n = A.shape[0]
+    n = matrix.shape[0]
     # Initial approximation: an arbitrary vector (here, a vector of ones)
     x = np.ones(n)
     x = x / np.linalg.norm(x)  # normalize the vector
     eigenvalue_history = []
     iter_numbers = []
+    relative_errors = []
 
     for i in range(max_iter):
         # Compute the product A * x
-        y = A.dot(x)
+        y = matrix.dot(x)
         # Approximate the eigenvalue using the Rayleigh quotient:
         lambda_approx = np.dot(x, y)
         eigenvalue_history.append(lambda_approx)
         iter_numbers.append(i)
 
+        # Calculate relative error (if not the first iteration)
+        if i > 0:
+            relative_error = abs(
+                (eigenvalue_history[-1] - eigenvalue_history[-2])
+                / eigenvalue_history[-2]
+            )
+            relative_errors.append(relative_error)
+        else:
+            relative_errors.append(None)
         # Normalize the vector y to obtain the next eigenvector approximation
         x_new = y / np.linalg.norm(y)
 
@@ -41,69 +52,33 @@ def power_method(A, tol=1e-10, max_iter=1000):
 
         x = x_new
 
-    return lambda_approx, x, eigenvalue_history, iter_numbers
-
-def read_matrix():
-    """
-    Reads a 3x3 matrix from the user input.
-
-    Returns:
-      - A: 3x3 numpy.ndarray
-    """
-    print("Enter the elements of matrix A (3x3):")
-    a11 = float(input("a11: "))
-    a12 = float(input("a12: "))
-    a13 = float(input("a13: "))
-    a21 = float(input("a21: "))
-    a22 = float(input("a22: "))
-    a23 = float(input("a23: "))
-    a31 = float(input("a31: "))
-    a32 = float(input("a32: "))
-    a33 = float(input("a33: "))
-
-    A = np.array([[a11, a12, a13],
-                  [a21, a22, a23],
-                  [a31, a32, a33]])
-    return A
-
-def print_results(lambda_approx, eigenvector, eigenvalue_history, iter_numbers):
-    """
-    Prints the results of the power method.
-    """
-    print("\nResults of the Power Method:")
-    print("Approximate largest eigenvalue:", lambda_approx)
-    print("Corresponding eigenvector (normalized):")
-    print(eigenvector)
-    print("Number of iterations:", len(iter_numbers))
-
-    print("\nConvergence Table (Iteration, Eigenvalue Approximation):")
-    print("{:<10} {:<20}".format("Iteration", "Eigenvalue"))
-    for it, val in zip(iter_numbers, eigenvalue_history):
-        print("{:<10} {:<20.12f}".format(it, val))
-
-def plot_convergence(iter_numbers, eigenvalue_history):
-    """
-    Plots the convergence of the eigenvalue approximations.
-    """
-    plt.figure(figsize=(8, 6))
-    plt.plot(iter_numbers, eigenvalue_history, marker='o', linestyle='-', color='blue')
-    plt.xlabel("Iteration Number")
-    plt.ylabel("Eigenvalue Approximation")
-    plt.title("Convergence of the Power Method")
+    if axes is None:
+        fig, axes = plt.subplots()
+    axes.plot(
+        iter_numbers[1:], relative_errors[1:], marker="o", linestyle="-", color="b"
+    )
+    axes.set_xlabel("Iteration")
+    axes.set_ylabel("Relative Error")
+    axes.set_title("Convergence of Power Method (Relative Error)")
     plt.grid(True)
-    plt.show()
+
+    return {
+        "lambda_approx": lambda_approx,
+        "eigenvector": x,
+        "eigenvalue_history": eigenvalue_history,
+        "iter_numbers": iter_numbers,
+    }
+
 
 def main():
-    A = read_matrix()
 
     # If you want to use a test example, uncomment the following lines:
     # A = np.array([[6, 2, 3],
     #               [2, 6, 4],
     #               [3, 4, 6]])
 
-    lambda_approx, eigenvector, eigenvalue_history, iter_numbers = power_method(A)
-    print_results(lambda_approx, eigenvector, eigenvalue_history, iter_numbers)
-    plot_convergence(iter_numbers, eigenvalue_history)
+    lambda_approx, eigenvector, eigenvalue_history, iter_numbers = power_method(None)
+
 
 if __name__ == "__main__":
     main()
