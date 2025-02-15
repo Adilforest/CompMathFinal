@@ -49,10 +49,10 @@ def solve_task(x_input, y_input, axes=None):
     y_table = cs(x_table)
 
     # Print the table of interpolated values
-    print("\nTable of interpolated values:")
-    print("{:<10} {:<15}".format("x", "Spline(y)"))
-    for xi, yi in zip(x_table, y_table):
-        print("{:<10.4f} {:<15.4f}".format(xi, yi))
+    # print("\nTable of interpolated values:")
+    # print("{:<10} {:<15}".format("x", "Spline(y)"))
+    # for xi, yi in zip(x_table, y_table):
+    #     print("{:<10.4f} {:<15.4f}".format(xi, yi))
 
     # ===============================
     # Step 4. Plot the results

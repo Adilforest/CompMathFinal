@@ -22,6 +22,7 @@ from matplotlib.figure import Figure
 
 from tasks.task1 import solve_task as solve_task_1
 from tasks.task2 import solve_task as solve_task_2
+from tasks.task6 import solve_task as solve_task_6
 from tasks.task7 import solve_task as solve_task_7
 from tasks.task8 import solve_task as solve_task_8
 
@@ -82,6 +83,11 @@ class MainWindow(QMainWindow):
                 input_widget = Task2InputWidget()
                 # Связываем сигнал solveRequested с обработчиком задачи 2
                 input_widget.solveRequested.connect(self.solve_task2)
+            elif task_number == 6:
+                # Для шестой задачи используем еще один кастомный виджет ввода
+                input_widget = Task6InputWidget()
+                # Связываем сигнал solveRequested с обработчиком задачи 6
+                input_widget.solveRequested.connect(self.solve_task_6)
             elif task_number == 7:
                 # Для седьмой задачи используем еще один кастомный виджет ввода
                 input_widget = Task7InputWidget()
@@ -206,6 +212,22 @@ class MainWindow(QMainWindow):
 
         canvas = self.plot_stack.widget(1)
         results = solve_task_2(n1, n2, a, b, c, d, tol, axes=canvas.axes)
+
+    def solve_task_6(self, x_input, y_input):
+        console = self.console_stack.widget(5)
+
+        console.append("Solving cubic spline interpolation task")
+
+        canvas = self.plot_stack.widget(5)
+        results = solve_task_6(x_input, y_input, axes=canvas.axes)
+
+        console.append("Table of interpolated values:")
+        console.append("{:<10} {:<15}".format("x", "Spline(y)"))
+        for xi, yi in zip(results["x_table"], results["y_table"]):
+            console.append("{:<10.4f} {:<15.4f}".format(xi, yi))
+        console.append("-" * 40)
+
+        canvas.draw()
 
     def solve_task_7(self, x_text, y0_text):
         console = self.console_stack.widget(6)
@@ -364,6 +386,38 @@ class Task2InputWidget(QWidget):
         self.solveRequested.emit(
             n1_text, n2_text, a_text, b_text, c_text, d_text, tol_text
         )
+
+
+class Task6InputWidget(QWidget):
+    solveRequested = Signal(str, str)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        layout = QVBoxLayout(self)
+        self.label_info = QLabel(
+            """Cubic spline interpolation
+            
+            """
+        )
+        layout.addWidget(self.label_info)
+
+        self.input_x = QLineEdit()
+        self.input_x.setPlaceholderText("Enter x values separated by spaces")
+        layout.addWidget(self.input_x)
+
+        self.input_y = QLineEdit()
+        self.input_y.setPlaceholderText("Enter y values separated by spaces")
+        layout.addWidget(self.input_y)
+
+        self.solve_button = QPushButton("Solve")
+        layout.addWidget(self.solve_button)
+
+        self.solve_button.clicked.connect(self.on_solve_clicked)
+
+    def on_solve_clicked(self):
+        x_text = self.input_x.text().strip()
+        y_text = self.input_y.text().strip()
+        self.solveRequested.emit(x_text, y_text)
 
 
 class Task7InputWidget(QWidget):
