@@ -217,9 +217,6 @@ def solve_task(
 
 
 def main():
-    # ===============================
-    # Reading user input
-    # ===============================
     lower_bound = float(
         input("Enter the lower bound of the interval x (upper bound will be x+3): ")
     )
@@ -233,9 +230,6 @@ def main():
     tol = 1e-10
     max_iter = 1000
 
-    # ===============================
-    # Calculate the exact solution (if possible)
-    # ===============================
     exact_root = get_exact_root(a, b, c, lower_bound, upper_bound)
     if exact_root is None:
         print(
@@ -253,9 +247,6 @@ def main():
             )
         )
 
-    # ===============================
-    # Compute roots using methods
-    # ===============================
     try:
         # Bisection method
         root_bis, iter_bis = bisection_method(
@@ -277,9 +268,6 @@ def main():
     else:
         rel_error_bis = rel_error_nr = None
 
-    # ===============================
-    # Output the results
-    # ===============================
     print("\nComparison of root-finding methods:")
     print("-------------------------------------------")
     print("{:<25} {:<20} {:<20}".format("Method", "Iterations", "Relative Error"))
@@ -304,9 +292,6 @@ def main():
     if exact_root is not None:
         print("Exact root: {:.12f}".format(exact_root))
 
-    # ===============================
-    # Plot the function and mark the roots
-    # ===============================
     plot_function_and_roots(
         f, lower_bound, upper_bound, root_bis, root_nr, exact_root, a, b, c
     )

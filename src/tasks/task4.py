@@ -69,16 +69,3 @@ def solve_task(matrix: np.ndarray, tol: float = 1e-10, max_iter: int = 1000, axe
         "iter_numbers": iter_numbers,
     }
 
-
-def main():
-
-    # If you want to use a test example, uncomment the following lines:
-    # A = np.array([[6, 2, 3],
-    #               [2, 6, 4],
-    #               [3, 4, 6]])
-
-    lambda_approx, eigenvector, eigenvalue_history, iter_numbers = power_method(None)
-
-
-if __name__ == "__main__":
-    main()
