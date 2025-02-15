@@ -3,13 +3,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def solve_task(x_input, axes=None):
+def solve_task(x_input: float, y0_value: float = 1.0, axes=None):
     """
     Solves the task:
       Computes approximations of y(x) using Picard's method at a given point x.
       Plots successive approximations and returns results in a dictionary.
     Parameters:
       x_input: The value of x (can be passed as Decimal, str, or float).
+      y0: The initial value y0(0)=1.0 by default.
       axes: A matplotlib.axes object to draw the plot on. If None, a new figure is created.
     Returns:
       dict with keys:
@@ -25,24 +26,24 @@ def solve_task(x_input, axes=None):
     # Step 2. Define Picard's approximations
     # ===============================
     def y0(x):
-        # Initial approximation: constant function y0(x)=1
-        return 1.0
+        # Initial approximation: constant function y0(x)=y0
+        return y0_value
 
     def y1(x):
         # First approximation: y1(x)=1 + x + x^2/2
-        return 1.0 + x + x**2 / 2
+        return y0_value + x + x**2 / 2
 
     def y2(x):
         # Second approximation: y2(x)=1 + x + x^2 + x^3/6
-        return 1.0 + x + x**2 + x**3 / 6
+        return y0_value + x + x**2 + x**3 / 6
 
     def y3(x):
         # Third approximation: y3(x)=1 + x + x^2 + x^3/3 + x^4/24
-        return 1.0 + x + x**2 + x**3 / 3 + x**4 / 24
+        return y0_value + x + x**2 + x**3 / 3 + x**4 / 24
 
     def y4(x):
         # Fourth approximation: y4(x)=1 + x + x^2 + x^3/3 + x^4/12 + x^5/120
-        return 1.0 + x + x**2 + x**3 / 3 + x**4 / 12 + x**5 / 120
+        return y0_value + x + x**2 + x**3 / 3 + x**4 / 12 + x**5 / 120
 
     # ===============================
     # Step 3. Compute approximations at x_val
@@ -58,7 +59,7 @@ def solve_task(x_input, axes=None):
     # ===============================
     # Step 4. Plot approximations
     # ===============================
-    x_plot = np.linspace(0, 0.5, 200)
+    x_plot = np.linspace(0, x_input + 1, 200)
     y_plots = {
         "y0": np.array([y0(x) for x in x_plot]),
         "y1": np.array([y1(x) for x in x_plot]),

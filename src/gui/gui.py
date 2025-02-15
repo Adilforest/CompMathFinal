@@ -22,6 +22,7 @@ from matplotlib.figure import Figure
 
 from tasks.task1 import solve_task as solve_task_1
 from tasks.task2 import solve_task as solve_task_2
+from tasks.task7 import solve_task as solve_task_7
 from tasks.task8 import solve_task as solve_task_8
 
 
@@ -81,6 +82,11 @@ class MainWindow(QMainWindow):
                 input_widget = Task2InputWidget()
                 # Связываем сигнал solveRequested с обработчиком задачи 2
                 input_widget.solveRequested.connect(self.solve_task2)
+            elif task_number == 7:
+                # Для седьмой задачи используем еще один кастомный виджет ввода
+                input_widget = Task7InputWidget()
+                # Связываем сигнал solveRequested с обработчиком задачи 7
+                input_widget.solveRequested.connect(self.solve_task_7)
             elif task_number == 8:
                 # Для восьмой задачи используем еще один кастомный виджет ввода
                 input_widget = Task8InputWidget()
@@ -200,6 +206,31 @@ class MainWindow(QMainWindow):
 
         canvas = self.plot_stack.widget(1)
         results = solve_task_2(n1, n2, a, b, c, d, tol, axes=canvas.axes)
+
+    def solve_task_7(self, x_text, y0_text):
+        console = self.console_stack.widget(6)
+        try:
+            x = float(x_text)
+            y0 = float(y0_text)
+        except ValueError:
+            console.append(
+                "Error: invalid input. Please enter valid numbers for x, y0."
+            )
+            return
+
+        equation_str = f"dy/dx = x + y"
+        console.append(f"Solving equation: {equation_str} at x = {x} with y(0) = {y0}")
+
+        canvas = self.plot_stack.widget(6)
+        results = solve_task_7(x, y0, axes=canvas.axes)
+
+        console.append(f"Approximations:")
+        for i, (approx_name, approx_val) in enumerate(results["approx_values"].items()):
+            console.append(f"{approx_name}: {approx_val}")
+        console.append(f"Final approximation: {results['final_approx']}")
+        console.append("-" * 40)
+
+        canvas.draw()
 
     def solve_task_8(self, n_text, a_text, b_text):
         console = self.console_stack.widget(7)
@@ -333,6 +364,38 @@ class Task2InputWidget(QWidget):
         self.solveRequested.emit(
             n1_text, n2_text, a_text, b_text, c_text, d_text, tol_text
         )
+
+
+class Task7InputWidget(QWidget):
+    solveRequested = Signal(str, str)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        layout = QVBoxLayout(self)
+        self.label_info = QLabel(
+            """dy/dx = x + y
+            
+            """
+        )
+        layout.addWidget(self.label_info)
+
+        self.input_x = QLineEdit()
+        self.input_x.setPlaceholderText("Enter the value of x to compute y")
+        layout.addWidget(self.input_x)
+
+        self.input_y0 = QLineEdit(text="1.0")
+        self.input_y0.setPlaceholderText("Enter the initial value y(0)")
+        layout.addWidget(self.input_y0)
+
+        self.solve_button = QPushButton("Solve")
+        layout.addWidget(self.solve_button)
+
+        self.solve_button.clicked.connect(self.on_solve_clicked)
+
+    def on_solve_clicked(self):
+        x_text = self.input_x.text().strip()
+        y0_text = self.input_y0.text().strip()
+        self.solveRequested.emit(x_text, y0_text)
 
 
 class Task8InputWidget(QWidget):
