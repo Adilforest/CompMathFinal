@@ -178,7 +178,7 @@ class MainWindow(QMainWindow):
             # Преобразуем входные данные
             n = Decimal(n_text)
             a = Decimal(a_text)
-            b = Decimal(b_text)
+            b = -Decimal(b_text)
             c = Decimal(c_text)
         except InvalidOperation:
             console.append(
@@ -227,11 +227,41 @@ class MainWindow(QMainWindow):
             )
             return
 
+        # Создаём строку уравнения для логирования
         equation_str = f"f(x) = {a}x^3 + {b}x^2 + {c}x + {d}"
         console.append(f"Solving equation: {equation_str} on interval [{n1}, {n2}]")
 
+        # Получаем объект холста для построения графика
         canvas = self.plot_stack.widget(1)
+
+        # Вызываем функцию решения (solve_task_2) и получаем результаты
         results = solve_task_2(n1, n2, a, b, c, d, tol, axes=canvas.axes)
+
+        # Выводим результаты в консоль:
+        console.append(f"Exact root (via np.roots): {results['exact_root']}")
+        console.append(
+            f"Bisection method root: {results['bisection_root']} (Iterations: {results['bisection_iterations']})"
+        )
+        console.append(
+            f"Newton-Raphson method root: {results['newton_root']} (Iterations: {results['newton_iterations']})"
+        )
+        # Выводим конечные абсолютные ошибки (последние значения в списках)
+        final_bis_error = (
+            results["bisection_absolute_errors"][-1]
+            if results["bisection_absolute_errors"]
+            else "N/A"
+        )
+        final_newton_error = (
+            results["newton_absolute_errors"][-1]
+            if results["newton_absolute_errors"]
+            else "N/A"
+        )
+        console.append(f"Final absolute error (Bisection): {final_bis_error}")
+        console.append(f"Final absolute error (Newton-Raphson): {final_newton_error}")
+        console.append("-" * 40)
+
+        # Обновляем график
+        canvas.draw()
 
     def solve_task_3(self, omega_text, a_text, b_text, c_text):
         console = self.console_stack.widget(2)
@@ -384,7 +414,7 @@ class Task1InputWidget(QWidget):
         layout = QVBoxLayout(self)
 
         self.label_info = QLabel(
-            """f(x) = x^4 - a*x^2 + b
+            """f(x) = ax^4 + b*x^2 + c
             
             
             """

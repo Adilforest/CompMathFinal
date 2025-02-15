@@ -133,18 +133,14 @@ def solve_task(
       - Вычисляет относительные погрешности по сравнению с точным корнем (через np.roots).
       - Строит график зависимости абсолютной ошибки от номера итерации для обоих методов.
 
-    Возвращает словарь с результатами:
-      {
-          "iter_table_bis": список кортежей (iteration, approximate x) для бисекции,
-          "approx_root_bis": конечное приближение корня (бисекция),
-          "iter_bis": число итераций метода бисекции,
-          "rel_error_bis": относительная ошибка метода бисекции,
-          "iter_table_nr": список кортежей (iteration, approximate x) для Ньютона–Рафсона,
-          "approx_root_nr": конечное приближение корня (Ньютона–Рафсона),
-          "iter_nr": число итераций метода Ньютона–Рафсона,
-          "rel_error_nr": относительная ошибка метода Ньютона–Рафсона,
-          "exact_root": точное значение корня (через np.roots)
-      }
+    Параметры:
+      n1, n2: Концы интервала.
+      a, b, c, d: Коэффициенты кубической функции.
+      tol: Заданная точность.
+      axes: Объект matplotlib.axes для построения графика. Если None, создаётся новый.
+
+    Возвращает:
+      dict с результатами, включая найденные корни, число итераций, ошибки и построенный график.
     """
     # Приводим входные данные к float
     n1_val = float(n1)
@@ -155,50 +151,69 @@ def solve_task(
     d_val = float(d)
     tol_val = float(tol)
 
-    # Функция и её производная с зафиксированными коэффициентами
-    f_partial = lambda x: f(x, a_val, b_val, c_val, d_val)
-    df_partial = lambda x: df(x, a_val, b_val, c_val)
+    # Определяем функцию и её производную с фиксированными коэффициентами
+    func = lambda x: f(x, a_val, b_val, c_val, d_val)
+    dfunc = lambda x: df(x, a_val, b_val, c_val)
 
-    # Метод бисекции с ведением таблицы итераций
-    bisect_iter = bisection_method(f_partial, n1_val, n2_val, tol=tol_val)
-
-    # Метод Ньютона–Рафсона: начальное приближение – середина отрезка
-    x0_nr = (n1_val + n2_val) / 2.0
-    nr_iter = newton_raphson_method(f_partial, df_partial, x0_nr, tol=tol_val)
-
-    # Поиск точного корня (если есть)
+    # Находим точный корень с помощью np.roots
     exact_root = get_exact_root(a_val, b_val, c_val, d_val, n1_val, n2_val)
-    bisect_root = bisect_iter[-1] if bisect_iter else 0
-    nr_root = nr_iter[-1] if nr_iter else 0
+    if exact_root is None:
+        raise ValueError("No real roots found in the interval.")
 
-    # Вычисляем относительные ошибки (если точный корень найден и не равен 0)
-    if exact_root is not None and exact_root != 0:
-        rel_error_bis = abs(bisect_root - exact_root) / abs(exact_root)
-        rel_error_nr = abs(nr_root - exact_root) / abs(exact_root)
-    else:
-        rel_error_bis = None
-        rel_error_nr = None
+    # Метод бисекции
+    bisect_iterations = bisection_method(func, n1_val, n2_val, tol_val)
+    bisect_root = bisect_iterations[-1]
+    bisect_iter_count = len(bisect_iterations)
 
+    # Метод Ньютона–Рафсона (начальное приближение – середина интервала)
+    initial_guess = (n1_val + n2_val) / 2.0
+    newton_iterations = newton_raphson_method(func, dfunc, initial_guess, tol_val)
+    newton_root = newton_iterations[-1]
+    newton_iter_count = len(newton_iterations)
+
+    # Вычисляем относительные и абсолютные погрешности для каждого приближения
+    bisect_relative_errors = [
+        abs(x - exact_root) / abs(exact_root) for x in bisect_iterations
+    ]
+    newton_relative_errors = [
+        abs(x - exact_root) / abs(exact_root) for x in newton_iterations
+    ]
+
+    bisect_absolute_errors = [abs(x - exact_root) for x in bisect_iterations]
+    newton_absolute_errors = [abs(x - exact_root) for x in newton_iterations]
+
+    # Построение графика зависимости абсолютной ошибки от номера итерации
     if axes is None:
-        fig, axes = plt.subplots(figsize=(8, 6))
+        fig, axes = plt.subplots(figsize=(10, 6))
     else:
         axes.clear()
-    axes.plot
 
-    # Если переданы оси (axes), можно отрисовать на них (код можно доработать по необходимости)
-    # ...
+    iterations_bis = range(1, bisect_iter_count + 1)
+    iterations_newton = range(1, newton_iter_count + 1)
 
-    # return {
-    #     "iter_table_bis": ,
-    #     "approx_root_bis": approx_root_bis,
-    #     "iter_bis": iter_bis,
-    #     "rel_error_bis": rel_error_bis,
-    #     "iter_table_nr": iter_table_nr,
-    #     "approx_root_nr": approx_root_nr,
-    #     "iter_nr": iter_nr,
-    #     "rel_error_nr": rel_error_nr,
-    #     "exact_root": exact_root,
-    # }
+    axes.plot(iterations_bis, bisect_absolute_errors, marker="o", label="Bisection")
+    axes.plot(
+        iterations_newton, newton_absolute_errors, marker="s", label="Newton-Raphson"
+    )
+    axes.set_xlabel("Iteration number")
+    axes.set_ylabel("Absolute error")
+    axes.set_title("Absolute error vs Iteration number")
+    axes.legend()
+    axes.grid(True)
+
+    # Формируем и возвращаем словарь с результатами
+    return {
+        "exact_root": exact_root,
+        "bisection_root": bisect_root,
+        "bisection_iterations": bisect_iter_count,
+        "newton_root": newton_root,
+        "newton_iterations": newton_iter_count,
+        "bisection_relative_errors": bisect_relative_errors,
+        "newton_relative_errors": newton_relative_errors,
+        "bisection_absolute_errors": bisect_absolute_errors,
+        "newton_absolute_errors": newton_absolute_errors,
+        "axes": axes,  # можно вернуть объект axes для дальнейшего использования
+    }
 
 
 def main():
