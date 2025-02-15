@@ -1,20 +1,70 @@
 from decimal import Decimal
 import matplotlib.pyplot as plt
 
-def get_parameters():
-    """
-    Step 1: Input parameters.
 
-    Prompts the user to enter the relaxation parameter ω and the coefficients a, b, c.
-    Returns the corresponding float values.
+def solve_task(omega, a, b, c, axes=None, tol=1e-10, max_iter=1000):
     """
-    omega = Decimal(input("Enter the relaxation parameter ω: "))
-    a = Decimal(input("Enter the value of a: "))
-    b = Decimal(input("Enter the value of b: "))
-    c = Decimal(input("Enter the value of c: "))
+    Solves the task by performing the following steps:
+    1. Perform the relaxation method for solving the system.
+    2. Print the iteration table.
+    3. Print the results.
+    4. Plot the convergence of the variables.
 
-    # Convert Decimal to float for computation
-    return float(omega), float(a), float(b), float(c)
+    Parameters:
+        omega   : relaxation parameter
+        a, b, c : coefficients
+        axes    : matplotlib axes for plotting
+        tol     : tolerance for convergence (max change)
+        max_iter: maximum number of iterations
+    """
+    # Step 2 & 3: Execute the relaxation method
+    iterations, x, y, z, iterations_list, x_history, y_history, z_history = (
+        relaxation_method(omega, a, b, c, tol, max_iter)
+    )
+
+    # Step 3.1: Print the iteration table
+    print_iteration_table(iterations_list, x_history, y_history, z_history)
+
+    # Step 4: Print the results
+    print_results(iterations, x, y, z, a, b, c)
+
+    if axes is None:
+        plt.figure(figsize=(8, 6))
+    else:
+        axes.clear()
+
+    # Plot the convergence graph
+    axes.plot(iterations_list, x_history, label="x", marker="o", markersize=4)
+    axes.plot(iterations_list, y_history, label="y", marker="s", markersize=4)
+    axes.plot(iterations_list, z_history, label="z", marker="^", markersize=4)
+
+    # Add horizontal lines for the analytical solutions
+    exact_x = a - c
+    exact_y = a - b
+    exact_z = b + c - a
+    axes.axhline(exact_x, color="blue", linestyle="--", linewidth=1)
+    axes.axhline(exact_y, color="orange", linestyle="--", linewidth=1)
+    axes.axhline(exact_z, color="green", linestyle="--", linewidth=1)
+
+    axes.set_xlabel("Iteration")
+    axes.set_ylabel("Variable Value")
+    axes.set_title("Convergence of Variables Using the Relaxation Method")
+    axes.legend()
+    axes.grid(True)
+    if axes.figure is not None:
+        axes.figure.canvas.draw_idle()
+
+    return {
+        "iterations": iterations,
+        "x": x,
+        "y": y,
+        "z": z,
+        "iterations_list": iterations_list,
+        "x_history": x_history,
+        "y_history": y_history,
+        "z_history": z_history,
+    }
+
 
 def relaxation_method(omega, a, b, c, tol=1e-10, max_iter=1000):
     """
@@ -76,6 +126,7 @@ def relaxation_method(omega, a, b, c, tol=1e-10, max_iter=1000):
 
     return iter + 1, x, y, z, iterations_list, x_history, y_history, z_history
 
+
 def print_iteration_table(iterations_list, x_history, y_history, z_history):
     """
     Step 3.1: Prints the iteration table.
@@ -87,9 +138,13 @@ def print_iteration_table(iterations_list, x_history, y_history, z_history):
     print("{:<10} | {:<10} | {:<10} | {:<10}".format("Iteration", "x", "y", "z"))
     print("-" * 40)
     for i in range(len(iterations_list)):
-        print("{:<10} | {:<10.6f} | {:<10.6f} | {:<10.6f}".format(
-            iterations_list[i], x_history[i], y_history[i], z_history[i]))
+        print(
+            "{:<10} | {:<10.6f} | {:<10.6f} | {:<10.6f}".format(
+                iterations_list[i], x_history[i], y_history[i], z_history[i]
+            )
+        )
     print("-" * 40)
+
 
 def print_results(iterations, x, y, z, a, b, c):
     """
@@ -98,7 +153,7 @@ def print_results(iterations, x, y, z, a, b, c):
     Prints the approximate solution from the relaxation method,
     and the analytical solution.
     """
-    print("\nNumber of iterations:", iterations) # Keep iteration count in results
+    print("\nNumber of iterations:", iterations)  # Keep iteration count in results
     print("Approximate solution using the relaxation method:")
     print(f"x = {x:.12f}")
     print(f"y = {y:.12f}")
@@ -113,53 +168,3 @@ def print_results(iterations, x, y, z, a, b, c):
     print(f"x = {exact_x:.12f}")
     print(f"y = {exact_y:.12f}")
     print(f"z = {exact_z:.12f}")
-
-def plot_convergence(iterations_list, x_history, y_history, z_history, a, b, c):
-    """
-    Step 5: Plots the convergence of the variables.
-
-    Plots the iteration history of x, y, and z values, and adds horizontal lines for the
-    analytical solutions for comparison.
-    """
-    # Analytical solution
-    exact_x = a - c
-    exact_y = a - b
-    exact_z = b + c - a
-
-    plt.figure(figsize=(10, 6))
-    plt.plot(iterations_list, x_history, label='x', marker='o', markersize=4)
-    plt.plot(iterations_list, y_history, label='y', marker='s', markersize=4)
-    plt.plot(iterations_list, z_history, label='z', marker='^', markersize=4)
-
-    # Add horizontal lines for the analytical solutions
-    plt.axhline(exact_x, color='blue', linestyle='--', linewidth=1)
-    plt.axhline(exact_y, color='orange', linestyle='--', linewidth=1)
-    plt.axhline(exact_z, color='green', linestyle='--', linewidth=1)
-
-    plt.xlabel('Iteration')
-    plt.ylabel('Variable Value')
-    plt.title('Convergence of Variables Using the Relaxation Method')
-    plt.legend()
-    plt.grid(True)
-    plt.show()
-
-def main():
-    # Step 1: Get parameters from the user
-    omega, a, b, c = get_parameters()
-
-    # Step 2 & 3: Execute the relaxation method
-    tol = 1e-10         # Tolerance for convergence
-    max_iter = 1000     # Maximum number of iterations
-    iterations, x, y, z, iterations_list, x_history, y_history, z_history = relaxation_method(omega, a, b, c, tol, max_iter)
-
-    # Step 3.1: Print the iteration table
-    print_iteration_table(iterations_list, x_history, y_history, z_history)
-
-    # Step 4: Print the results
-    print_results(iterations, x, y, z, a, b, c)
-
-    # Step 5: Plot the convergence graph
-    plot_convergence(iterations_list, x_history, y_history, z_history, a, b, c)
-
-if __name__ == "__main__":
-    main()
