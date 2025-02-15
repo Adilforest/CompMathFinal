@@ -21,9 +21,7 @@ def solve_task(x_input, y_input, axes=None):
          - "x_table": Array of x values for the table,
          - "y_table": Array of interpolated y values for the table.
     """
-    # ===============================
-    # Step 1. Parse input data
-    # ===============================
+    # Parse input data
     x_data = np.array([float(val) for val in x_input.split()])
     y_data = np.array([float(val) for val in y_input.split()])
 
@@ -31,16 +29,10 @@ def solve_task(x_input, y_input, axes=None):
     if len(x_data) != len(y_data):
         raise ValueError("Error: The number of x and y values must match!")
 
-    # ===============================
-    # Step 2. Create cubic spline interpolator
-    # ===============================
-    # Use natural boundary conditions (second derivative equals 0 at endpoints)
+    # Create cubic spline interpolator
     cs = CubicSpline(x_data, y_data, bc_type="natural")
 
-    # ===============================
-    # Step 3. Generate data for plotting and table
-    # ===============================
-    # Generate a dense grid for plotting the spline curve
+    # Generate data for plotting and table
     x_interp = np.linspace(np.min(x_data), np.max(x_data), 200)
     y_interp = cs(x_interp)
 
@@ -54,9 +46,7 @@ def solve_task(x_input, y_input, axes=None):
     # for xi, yi in zip(x_table, y_table):
     #     print("{:<10.4f} {:<15.4f}".format(xi, yi))
 
-    # ===============================
-    # Step 4. Plot the results
-    # ===============================
+    # Plot the results
     if axes is None:
         fig, axes = plt.subplots(figsize=(8, 6))
     else:
@@ -75,9 +65,6 @@ def solve_task(x_input, y_input, axes=None):
     if axes.figure is not None:
         axes.figure.canvas.draw_idle()
 
-    # ===============================
-    # Step 5. Return results as a dictionary
-    # ===============================
     return {
         "x_data": x_data,
         "y_data": y_data,
@@ -86,16 +73,3 @@ def solve_task(x_input, y_input, axes=None):
         "x_table": x_table,
         "y_table": y_table,
     }
-
-
-# Example usage
-if __name__ == "__main__":
-    # Input from the user
-    x_input = input("Enter x values separated by spaces (e.g., 0 0.5 1.0 1.5): ")
-    y_input = input("Enter y values separated by spaces (e.g., 0 0.25 0.75 2.25): ")
-
-    # Solve the task
-    result = solve_task(x_input, y_input)
-
-    # Results are printed within the function
-    plt.show()

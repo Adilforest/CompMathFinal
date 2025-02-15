@@ -19,12 +19,9 @@ def solve_task(x_input: float, y0_value: float = 1.0, axes=None):
          - "approx_values": Dictionary of y(x) values at the given x,
          - "final_approx": Value of y(x) from the 4th approximation.
     """
-    # Convert input to float
     x_val = float(x_input)
 
-    # ===============================
-    # Step 2. Define Picard's approximations
-    # ===============================
+    # Define Picard's approximations
     def y0(x):
         # Initial approximation: constant function y0(x)=y0
         return y0_value
@@ -45,9 +42,7 @@ def solve_task(x_input: float, y0_value: float = 1.0, axes=None):
         # Fourth approximation: y4(x)=1 + x + x^2 + x^3/3 + x^4/12 + x^5/120
         return y0_value + x + x**2 + x**3 / 3 + x**4 / 12 + x**5 / 120
 
-    # ===============================
-    # Step 3. Compute approximations at x_val
-    # ===============================
+    # Compute approximations at x_val
     approx_values = {
         "y0": y0(x_val),
         "y1": y1(x_val),
@@ -56,9 +51,7 @@ def solve_task(x_input: float, y0_value: float = 1.0, axes=None):
         "y4": y4(x_val),
     }
 
-    # ===============================
-    # Step 4. Plot approximations
-    # ===============================
+    # Plot approximations
     x_plot = np.linspace(0, x_input + 1, 200)
     y_plots = {
         "y0": np.array([y0(x) for x in x_plot]),
@@ -96,35 +89,9 @@ def solve_task(x_input: float, y0_value: float = 1.0, axes=None):
     if axes.figure is not None:
         axes.figure.canvas.draw_idle()
 
-    # ===============================
-    # Step 5. Return results as a dictionary
-    # ===============================
     return {
         "x_plot": x_plot,
         "y_plots": y_plots,
         "approx_values": approx_values,
         "final_approx": approx_values["y4"],
     }
-
-
-# Example usage
-if __name__ == "__main__":
-    # Input from the user
-    x_input = Decimal(input("Enter the value of x to compute y (e.g., 0.2): "))
-
-    # Solve the task
-    result = solve_task(x_input)
-
-    # Print the table of approximations
-    print("\nTable of approximate values using Picard's method:")
-    print("{:<10} {:<20}".format("Iteration", "y(x)"))
-    for key, value in result["approx_values"].items():
-        print("{:<10} {:<20.12f}".format(key, value))
-
-    print(
-        "\nValue of y at x = {:.4f} using the 4th approximation: {:.12f}".format(
-            float(x_input), result["final_approx"]
-        )
-    )
-
-    plot = plt.show()

@@ -49,7 +49,6 @@ class MainWindow(QMainWindow):
         central_widget = QWidget()
         main_layout = QVBoxLayout(central_widget)
 
-        # Верхняя панель с кнопками задач (фиксированный размер)
         top_panel = QWidget()
         top_layout = QHBoxLayout(top_panel)
         self.task_buttons = []
@@ -62,64 +61,43 @@ class MainWindow(QMainWindow):
             top_layout.addWidget(btn)
         main_layout.addWidget(top_panel)
 
-        # Вертикальный сплиттер: верхняя часть (ввод/график) и нижняя (консоль)
         vertical_splitter = QSplitter(Qt.Vertical)
 
-        # Горизонтальный сплиттер: левая часть (ввод) и правая (график)
         horizontal_splitter = QSplitter(Qt.Horizontal)
 
-        # QStackedWidget для ввода данных/описания
         self.input_stack = QStackedWidget()
-        # QStackedWidget для графиков (Matplotlib)
         self.plot_stack = QStackedWidget()
-        # QStackedWidget для консольного лога
         self.console_stack = QStackedWidget()
 
         # Создаем страницы для каждой задачи (1–8)
         for i in range(8):
             task_number = i + 1
             if task_number == 1:
-                # Для первой задачи используем наш кастомный виджет ввода
                 input_widget = Task1InputWidget()
-                # Связываем сигнал solveRequested с обработчиком задачи 1
                 input_widget.solveRequested.connect(self.solve_task1)
             elif task_number == 2:
-                # Для второй задачи используем другой кастомный виджет ввода
                 input_widget = Task2InputWidget()
-                # Связываем сигнал solveRequested с обработчиком задачи 2
                 input_widget.solveRequested.connect(self.solve_task2)
             elif task_number == 3:
-                # Для третьей задачи используем еще один кастомный виджет ввода
                 input_widget = Task3InputWidget()
-                # Связываем сигнал solveRequested с обработчиком задачи 3
                 input_widget.solveRequested.connect(self.solve_task_3)
             elif task_number == 4:
-                # Для четвертой задачи используем еще один кастомный виджет ввода
                 input_widget = Task4InputWidget()
-                # Связываем сигнал solveRequested с обработчиком задачи 4
                 input_widget.solveRequested.connect(self.solve_task4)
             elif task_number == 5:
-                # Для пятой задачи используем еще один кастомный виджет ввода
                 input_widget = Task5InputWidget()
-                # Связываем сигнал solveRequested с обработчиком задачи 5
                 input_widget.solveRequested.connect(self.solve_task_5)
             elif task_number == 6:
-                # Для шестой задачи используем еще один кастомный виджет ввода
                 input_widget = Task6InputWidget()
-                # Связываем сигнал solveRequested с обработчиком задачи 6
                 input_widget.solveRequested.connect(self.solve_task_6)
             elif task_number == 7:
-                # Для седьмой задачи используем еще один кастомный виджет ввода
                 input_widget = Task7InputWidget()
-                # Связываем сигнал solveRequested с обработчиком задачи 7
                 input_widget.solveRequested.connect(self.solve_task_7)
             elif task_number == 8:
-                # Для восьмой задачи используем еще один кастомный виджет ввода
                 input_widget = Task8InputWidget()
-                # Связываем сигнал solveRequested с обработчиком задачи 8
                 input_widget.solveRequested.connect(self.solve_task_8)
             else:
-                # Для остальных задач пока используем placeholder
+                # Placeholder for future tasks
                 input_widget = QTextEdit()
                 input_widget.setPlaceholderText(
                     f"Input and description for task {task_number}"

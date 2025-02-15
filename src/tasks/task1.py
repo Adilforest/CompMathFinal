@@ -71,12 +71,12 @@ def solve_task(n: float, a: float, b: float, c: float, axes=None):
         approx_root_bis = (x_left + x_right) / 2.0
         abs_error = abs(approx_root_graph - approx_root_bis)
 
-    # Plotting the function f(x) = a*x^4 - b*x^2 + c
+    # Plotting the function f(x) = a*x^4 + b*x^2 + c
     if axes is None:
         fig, axes = plt.subplots(figsize=(8, 6))
     else:
         axes.clear()
-    axes.plot(x_vals, f_vals, label=f"f(x) = {a_val}x⁴ - {b_val}x² + {c_val}")
+    axes.plot(x_vals, f_vals, label=f"f(x) = {a_val}x⁴ + {b_val}x² + {c_val}")
     axes.axhline(0, color="black", linewidth=0.5)  # axis x
     axes.axvline(0, color="black", linewidth=0.5)  # axis y
     axes.set_xlabel("x")
