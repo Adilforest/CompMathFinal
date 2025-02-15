@@ -22,6 +22,7 @@ from matplotlib.figure import Figure
 
 from tasks.task1 import solve_task as solve_task_1
 from tasks.task2 import solve_task as solve_task_2
+from tasks.task5 import solve_task as solve_task_5
 from tasks.task6 import solve_task as solve_task_6
 from tasks.task7 import solve_task as solve_task_7
 from tasks.task8 import solve_task as solve_task_8
@@ -83,6 +84,11 @@ class MainWindow(QMainWindow):
                 input_widget = Task2InputWidget()
                 # Связываем сигнал solveRequested с обработчиком задачи 2
                 input_widget.solveRequested.connect(self.solve_task2)
+            elif task_number == 5:
+                # Для пятой задачи используем еще один кастомный виджет ввода
+                input_widget = Task5InputWidget()
+                # Связываем сигнал solveRequested с обработчиком задачи 5
+                input_widget.solveRequested.connect(self.solve_task_5)
             elif task_number == 6:
                 # Для шестой задачи используем еще один кастомный виджет ввода
                 input_widget = Task6InputWidget()
@@ -212,6 +218,31 @@ class MainWindow(QMainWindow):
 
         canvas = self.plot_stack.widget(1)
         results = solve_task_2(n1, n2, a, b, c, d, tol, axes=canvas.axes)
+
+    def solve_task_5(self, x_input, y_input):
+        console = self.console_stack.widget(4)
+
+        console.append("Solving exponential fit task")
+
+        canvas = self.plot_stack.widget(4)
+        results = solve_task_5(x_input, y_input, axes=canvas.axes)
+
+        console.append("Comparison Table:")
+        console.append(
+            "{:<10} {:<15} {:<15} {:<15}".format("x", "y (data)", "y (model)", "Error")
+        )
+        for xi, yi, yi_fit, error in results["errors"]:
+            console.append(
+                "{:<10.4f} {:<15.4f} {:<15.4f} {:<15.4e}".format(xi, yi, yi_fit, error)
+            )
+        console.append(f"A fit: {results['A_fit']}")
+        console.append(f"B fit: {results['B_fit']}")
+        console.append(
+            f"Equation: y = {results['A_fit']} * exp({results['B_fit']} * x)"
+        )
+        console.append("-" * 40)
+
+        canvas.draw()
 
     def solve_task_6(self, x_input, y_input):
         console = self.console_stack.widget(5)
@@ -386,6 +417,40 @@ class Task2InputWidget(QWidget):
         self.solveRequested.emit(
             n1_text, n2_text, a_text, b_text, c_text, d_text, tol_text
         )
+
+
+class Task5InputWidget(QWidget):
+    solveRequested = Signal(np.ndarray, np.ndarray)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        layout = QVBoxLayout(self)
+        self.label_info = QLabel(
+            """Exponential fit: y = A * exp(B * x)
+            
+            """
+        )
+        layout.addWidget(self.label_info)
+
+        self.input_x = QLineEdit()
+        self.input_x.setPlaceholderText("Enter x values separated by spaces")
+        layout.addWidget(self.input_x)
+
+        self.input_y = QLineEdit()
+        self.input_y.setPlaceholderText("Enter y values separated by spaces")
+        layout.addWidget(self.input_y)
+
+        self.solve_button = QPushButton("Solve")
+        layout.addWidget(self.solve_button)
+
+        self.solve_button.clicked.connect(self.on_solve_clicked)
+
+    def on_solve_clicked(self):
+        x_text = self.input_x.text().strip()
+        y_text = self.input_y.text().strip()
+        x_input = np.array([float(x) for x in x_text.split()])
+        y_input = np.array([float(y) for y in y_text.split()])
+        self.solveRequested.emit(x_input, y_input)
 
 
 class Task6InputWidget(QWidget):
